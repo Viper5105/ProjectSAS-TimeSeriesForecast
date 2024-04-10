@@ -1,0 +1,1194 @@
+<?xml version="1.0" encoding="UTF-8"?><Task schemaVersion="5.4">
+    <Registration>
+        <Name>Modeling and Forecasting</Name>
+        <Description>Select and build forecast models on time series data.</Description>
+        <GUID>44bc92b5-f7f9-4442-b80c-d38f2728e1fa</GUID>
+        <Procedures>ARIMA ESM UCM</Procedures>
+        <Version>3.8</Version>
+        <Links>
+            <Link href="http://documentation.sas.com/?softwareId=STUDIOMID&amp;softwareVersion=3.8&amp;softwareContextId=tasks&amp;requestor=inapp">SAS Studio Task Reference Guide</Link>
+            <Link href=""> </Link>
+            <Link href=""> </Link>
+            <Link href="http://documentation.sas.com/?softwareId=ANMVA&amp;softwareVersion=3.8_15.1&amp;softwareContextId=proc_arima&amp;requestor=inapp">The ARIMA Procedure</Link>
+            <Link href=""> </Link>
+            <Link href=""> </Link>
+            <Link href="http://documentation.sas.com/?softwareId=ANMVA&amp;softwareVersion=3.8_15.1&amp;softwareContextId=proc_esm&amp;requestor=inapp">The ESM Procedure</Link>
+            <Link href=""> </Link>
+            <Link href=""> </Link>
+            <Link href="http://documentation.sas.com/?softwareId=ANMVA&amp;softwareVersion=3.8_15.1&amp;softwareContextId=proc_ucm&amp;requestor=inapp">The UCM Procedure</Link>
+            <Link href=""> </Link>
+            <Link href=""> </Link>
+            <Link href="http://support.sas.com/training/studio">SAS Tutorials</Link>
+        </Links>
+    </Registration>
+    <Metadata>
+        <DataSources>
+            <DataSource name="dataset" where="true">
+                <Roles>
+                    <Role exclude="dependVariable,independVariable,ucmIndependVariable,byVariables" maxVars="1" minVars="0" name="timeID" type="N">Time ID</Role>
+                    <Role exclude="timeID,independVariable,ucmIndependVariable,byVariables" maxVars="1" minVars="1" name="dependVariable" type="N">Dependent variable</Role>
+                    <Role exclude="timeID,dependVariable,byVariables" maxVars="0" minVars="1" name="independVariable" order="true" type="N">Independent variables</Role>
+                    <Role exclude="dependVariable,timeID,independVariable,ucmIndependVariable" maxVars="0" minVars="0" name="byVariables" order="true" type="A">Group analysis by</Role>
+                    <Role exclude="timeID,dependVariable,byVariables" maxVars="0" minVars="1" name="ucmIndependVariable" order="true" type="N">Independent variables</Role>
+                </Roles>
+            </DataSource>
+        </DataSources>
+
+        <Options>
+            <Option inputType="string" name="dataTab">DATA</Option>
+            <Option inputType="string" name="dataGroup">DATA</Option>
+            <Option inputType="string" name="rolesGroup">ROLES</Option>
+            <Option inputType="string" name="addRolesGroup">ADDITIONAL ROLES</Option>
+
+            <Option inputType="string" name="taskNoteGroup">NOTE</Option>
+            <Option inputType="string" name="taskNote">This task requires data in a valid time series format. To prepare your data, run the Time Series Data Preparation task before starting this task.</Option>
+
+            <!-- Time ID properties -->
+            <Option inputType="string" name="timeIDPropertyGroup">Properties</Option>
+            <!-- Note: The timeidproperties component is for internal use only. -->
+            <Option inputType="timeidproperties" name="timeIDProps" source="timeID"/>
+            <Option decimalPlaces="0" defaultValue="1" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than 0 and less than or equal to 10000." maxValue="10000" minValue="1" missingMessage="Enter an integer greater than 0 and less than or equal to 10000." name="seasonalLen" promptMessage="Enter an integer greater than 0 and less than or equal to 10000." rangeMessage="Enter an integer greater than 0 and less than or equal to 10000." width="5em">Season length:</Option>
+
+            <!-- Model related options -->
+            <Option inputType="string" name="modelTab">MODEL</Option>
+
+            <Option inputType="string" name="esmGroup">Model Settings</Option>
+            <Option inputType="string" name="arimaGroup">Model Settings</Option>
+            <Option inputType="string" name="ucmGroup">Model Settings</Option>
+            <Option inputType="string" name="maGroup">Model Settings</Option>
+            <Option inputType="string" name="rwGroup">Model Settings</Option>
+
+            <!-- Model Type options -->
+            <Option inputType="string" name="modelGroup">MODEL</Option>
+
+            <Option inputType="combobox" name="modelTypeCombo" required="true" selectMessage="Select a model type">Forecasting model type:</Option>
+            <Option inputType="string" name="modelTypeESM" returnValue="ESM">Exponential smoothing</Option>
+            <Option inputType="string" name="modelTypeARIMA" returnValue="ARIMA">ARIMA</Option>
+            <Option inputType="string" name="modelTypeARIMAX" returnValue="ARIMAX">ARIMAX</Option>
+            <Option inputType="string" name="modelTypeUCM" returnValue="UCM">Unobserved components</Option>
+            <Option inputType="string" name="modelTypeMA" returnValue="MA">Moving average</Option>
+            <Option inputType="string" name="modelTypeRW" returnValue="RW">Random walk</Option>
+
+            <!-- Exponential smoothing models options -->
+            <Option defaultValue="simple" inputType="combobox" name="esmModelCombo">Forecasting model:</Option>
+            <Option inputType="string" name="esmModelSIMPLE" returnValue="simple">Simple (single) exponential smoothing</Option>
+            <Option inputType="string" name="esmModelDOUBLE" returnValue="double">Double (Brown) exponential smoothing</Option>
+            <Option inputType="string" name="esmModelLINEAR" returnValue="linear">Linear (Holt) exponential smoothing</Option>
+            <Option inputType="string" name="esmModelDAMPTREND" returnValue="damptrend">Damped trend exponential smoothing</Option>
+            <Option inputType="string" name="esmModelADDSEASONAL" returnValue="addseasonal">Additive seasonal exponential smoothing</Option>
+            <Option inputType="string" name="esmModelMULTSEASONAL" returnValue="multseasonal">Multiplicative seasonal exponential smoothing</Option>
+            <Option inputType="string" name="esmModelWINTERS" returnValue="winters">Winters multiplicative model</Option>
+            <Option inputType="string" name="esmModelADDWINTERS" returnValue="addwinters">Winters additive method</Option>
+
+            <Option defaultValue="esmTransformNONE" inputType="combobox" name="esmTransformCombo">Transformation:</Option>
+            <Option inputType="string" name="esmTransformNONE" returnValue="none">No transformation</Option>
+            <Option inputType="string" name="esmTransformLOG" returnValue="log">Logarithmic transformation</Option>
+            <Option inputType="string" name="esmTransformSQRT" returnValue="sqrt">Square-root transformation</Option>
+            <Option inputType="string" name="esmTransformLOGGISTIC" returnValue="logistic">Logistic transformation</Option>
+            <Option inputType="string" name="esmTransformBOXCOX" returnValue="boxcox">Box-Cox transformation</Option>
+            <Option defaultValue="0" indent="1" inputType="numbertext" invalidMessage="Enter a number between -5 and 5." maxValue="5" minValue="-5" missingMessage="Enter a number between -5 and 5." name="boxCoxParam" promptMessage="Enter a number between -5 and 5." rangeMessage="Enter a number between -5 and 5." required="true" width="6em">Box-Cox transformation parameter:</Option>
+
+            <Option defaultValue="mean" inputType="combobox" name="esmForecastTypeCombo">Forecast type:</Option>
+            <Option inputType="string" name="esmForecastTypeMEAN" returnValue="mean">Mean forecasts</Option>
+            <Option inputType="string" name="esmForecastTypeMEDIAN" returnValue="median">Median forecasts</Option>
+
+            <!-- ARIMA related options -->
+            <Option inputType="string" name="arimaSettingsGroup">ARIMA</Option>
+            <Option decimalPlaces="0" defaultValue="0" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 0 and less than 14." maxValue="13" minValue="0" missingMessage="Enter an integer greater than or equal to 0 and less than 14." name="arimaP" promptMessage="Enter an integer greater than or equal to 0 and less than 14." rangeMessage="Enter an integer greater than or equal to 0 and less than 14." width="3em">Autoregressive order (p):</Option>
+            <Option decimalPlaces="0" defaultValue="0" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 0 and less than 14." maxValue="13" minValue="0" missingMessage="Enter an integer greater than or equal to 0 and less than 14." name="arimaD" promptMessage="Enter an integer greater than or equal to 0 and less than 14." rangeMessage="Enter an integer greater than or equal to 0 and less than 14." width="3em">Differencing order (d):</Option>
+            <Option decimalPlaces="0" defaultValue="0" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 0 and less than 14." maxValue="13" minValue="0" missingMessage="Enter an integer greater than or equal to 0 and less than 14." name="arimaQ" promptMessage="Enter an integer greater than or equal to 0 and less than 14." rangeMessage="Enter an integer greater than or equal to 0 and less than 14." width="3em">Moving average order (q):</Option>
+            <Option inputType="string" name="seasonalArimaSettingsGroup">Seasonal ARIMA</Option>
+            <Option decimalPlaces="0" defaultValue="0" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 0 and less than 6." maxValue="5" minValue="0" missingMessage="Enter an integer greater than or equal to 0 and less than 6." name="arimaPP" promptMessage="Enter an integer greater than or equal to 0 and less than 6." rangeMessage="Enter an integer greater than or equal to 0 and less than 6." width="3em">Autoregressive order (P):</Option>
+            <Option decimalPlaces="0" defaultValue="0" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 0 and less than 4." maxValue="3" minValue="0" missingMessage="Enter an integer greater than or equal to 0 and less than 4." name="arimaDD" promptMessage="Enter an integer greater than or equal to 0 and less than 4." rangeMessage="Enter an integer greater than or equal to 0 and less than 4." width="3em">Differencing order (D):</Option>
+            <Option decimalPlaces="0" defaultValue="0" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 0 and less than 6." maxValue="5" minValue="0" missingMessage="Enter an integer greater than or equal to 0 and less than 6." name="arimaQQ" promptMessage="Enter an integer greater than or equal to 0 and less than 6." rangeMessage="Enter an integer greater than or equal to 0 and less than 6." width="3em">Moving average order (Q):</Option>
+            <Option inputType="string" name="arimaxGroup">Independent Variables</Option>
+
+            <Option defaultValue="1" inputType="checkbox" name="Intercept">Include intercept in model</Option>
+
+            <!-- UCM related options -->
+            <Option inputType="string" name="ucmRegressionGroup">Regression Effects</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmIndependVar">Include independent variables</Option>
+
+            <Option inputType="string" name="ucmIrregularCompGroup">Irregular Component</Option>
+            <Option defaultValue="1" inputType="checkbox" name="ucmIrregular">Include an irregular component</Option>
+            <Option defaultValue="0" indent="1" inputType="checkbox" name="ucmIrregularVariance">Specify variance</Option>
+            <Option defaultValue="0" indent="2" inputType="numbertext" invalidMessage="Enter a number greater than or equal to 0." minValue="0" missingMessage="Enter a number greater than or equal to 0." name="ucmIrregularInitialVariance" promptMessage="Enter a number greater than or equal to 0." rangeMessage="Enter a number greater than or equal to 0." required="true" width="6em">Initial variance:</Option>
+            <Option defaultValue="0" indent="2" inputType="checkbox" name="ucmIrregularNoest">Fix variance value</Option>
+
+            <Option inputType="string" name="ucmTrendCompGroup">Trend Component</Option>
+            <Option defaultValue="1" inputType="checkbox" name="ucmLevel">Include a level component</Option>
+            <Option defaultValue="0" indent="1" inputType="checkbox" name="ucmLevelVariance">Specify variance</Option>
+            <Option defaultValue="0" indent="2" inputType="numbertext" invalidMessage="Enter a number greater than or equal to 0." minValue="0" missingMessage="Enter a number greater than or equal to 0." name="ucmLevelInitialVariance" promptMessage="Enter a number greater than or equal to 0." rangeMessage="Enter a number greater than or equal to 0." required="true" width="6em">Initial variance:</Option>
+            <Option defaultValue="0" indent="2" inputType="checkbox" name="ucmLevelNoest">Fix variance value</Option>
+            <Option defaultValue="0" indent="1" inputType="checkbox" name="ucmLevelCheckBreaks">Check for level breaks</Option>
+            <Option defaultValue="0" indent="1" inputType="checkbox" name="ucmSlope">Include a slope component</Option>
+            <Option defaultValue="0" indent="2" inputType="checkbox" name="ucmSlopeVariance">Specify variance</Option>
+            <Option defaultValue="0" indent="3" inputType="numbertext" invalidMessage="Enter a number greater than or equal to 0." minValue="0" missingMessage="Enter a number greater than or equal to 0." name="ucmSlopeInitialVariance" promptMessage="Enter a number greater than or equal to 0." rangeMessage="Enter a number greater than or equal to 0." required="true" width="6em">Initial variance:</Option>
+            <Option defaultValue="0" indent="3" inputType="checkbox" name="ucmSlopeNoest">Fix variance value</Option>
+
+            <Option inputType="string" name="ucmSeasonalCompGroup">Seasonal Component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmSeasonal">Include a seasonal component</Option>
+            <Option indent="1" inputType="string" name="ucmSeasonalNote">Note: Seasonal component can be added when season length is greater than one.</Option>
+            <Option defaultValue="ucmDummy" indent="1" inputType="combobox" name="ucmSeasonalType">Type:</Option>
+                <Option inputType="string" name="ucmDummy" returnValue="dummy">Dummy</Option>
+                <Option inputType="string" name="ucmTrig" returnValue="trig">Trigonometric</Option>
+            <Option defaultValue="0" indent="1" inputType="checkbox" name="ucmSeasonalVariance">Specify variance</Option>
+            <Option defaultValue="0" indent="2" inputType="numbertext" invalidMessage="Enter a number greater than or equal to 0." minValue="0" missingMessage="Enter a number greater than or equal to 0." name="ucmSeasonalInitialVariance" promptMessage="Enter a number greater than or equal to 0." rangeMessage="Enter a number greater than or equal to 0." required="true" width="6em">Initial variance:</Option>
+            <Option defaultValue="0" indent="2" inputType="checkbox" name="ucmSeasonalNoest">Fix variance value</Option>
+            
+            <Option inputType="string" name="ucmCycleCompGroup">Cycle Component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmCycle">Include a cycle component</Option>
+            <Option defaultValue="0" indent="1" inputType="checkbox" name="ucmCyclePeriod">Specify cycle period</Option>
+            <Option decimalPlaces="0" defaultValue="3" increment="1" indent="2" inputType="numstepper" invalidMessage="Enter an integer greater than 2." minValue="3" missingMessage="Enter an integer greater than 2." name="ucmCycleInitialPeriod" promptMessage="Enter an integer greater than 2." rangeMessage="Enter an integer greater than 2." required="true" width="6em">Initial cycle period:</Option>
+            <Option defaultValue="0" indent="2" inputType="checkbox" name="ucmCyclePeriodNoest">Fix period value</Option>
+            <Option defaultValue="0" indent="1" inputType="checkbox" name="ucmCycleDamping">Specify damping factor</Option>
+            <Option defaultValue="0.01" indent="2" inputType="numbertext" invalidMessage="Enter a number greater than 0 and less than or equal to 1." maxValue="1" minValue="0.00000000000000000000000001" missingMessage="Enter a number greater than 0 and less than or equal to 1." name="ucmCycleInitialDamping" promptMessage="Enter a number greater than 0 and less than or equal to 1." rangeMessage="Enter a number greater than 0 and less than or equal to 1." required="true" width="6em">Initial damping factor:</Option>
+            <Option defaultValue="0" indent="2" inputType="checkbox" name="ucmCycleDampingNoest">Fix damping value</Option>
+            <Option defaultValue="0" indent="1" inputType="checkbox" name="ucmCycleVariance">Specify variance</Option>
+            <Option defaultValue="0" indent="2" inputType="numbertext" invalidMessage="Enter a number greater than or equal to 0." minValue="0" missingMessage="Enter a number greater than or equal to 0." name="ucmCycleInitialVariance" promptMessage="Enter a number greater than or equal to 0." rangeMessage="Enter a number greater than or equal to 0." required="true" width="6em">Initial variance:</Option>
+            <Option defaultValue="0" indent="2" inputType="checkbox" name="ucmCycleVarianceNoest">Fix variance value</Option>
+
+            <!-- UCM plots -->
+            <Option inputType="string" name="ucmPlotsGroup">Plots</Option>
+            <Option defaultValue="ucmDefaultPlots" inputType="combobox" name="ucmSelectPlotsCombo">Select plots to display:</Option>
+            <Option inputType="string" name="ucmDefaultPlots">Default plots</Option>
+            <Option inputType="string" name="ucmSelectedPlots">Selected plots</Option>
+            <Option inputType="string" name="ucmAllPlots">All plots</Option>
+            <Option inputType="string" name="ucmNoPlots">No plots</Option>
+            <Option indent="1" inputType="string" name="ucmResidualPlotsGroup">Residuals Plots</Option>
+            <Option defaultValue="1" inputType="checkbox" name="ucmResidualPanel">Diagnostics panel</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmResidualAcfPlot">Autocorrelation function</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmResidualPacfPlot">Partial autocorrelation function</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmResidualHistogram">Residuals histogram</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmResidualQQ">Normal quantile</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmResidualNeedle">Residuals needle plot</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmResidualModel">One-step-ahead forecasts</Option>
+            <Option defaultValue="1" inputType="checkbox" name="ucmResidualLoess">Scatter plot of residuals with an overlaid loess-fit</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmWnPlot">White noise probability test (log scale)</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmResidualCusum">Cumulative residuals against time</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmResidualCusumsq">Cumulative squared residuals against time</Option>
+            <Option indent="1" inputType="string" name="ucmSmoothCompPlotsGroup">Smoothed Component Estimates</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmSmoothIrregular">Irregular component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmSmoothLevel">Level component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmSmoothSlope">Slope component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmSmoothSeason">Season component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmSmoothCycle">Cycle component</Option>
+            <Option indent="1" inputType="string" name="ucmFilterCompPlotsGroup">Filtered Component Estimates</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmFilterLevel">Level component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmFilterSlope">Slope component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmFilterSeason">Season component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmFilterCycle">Cycle component</Option>
+            <Option indent="1" inputType="string" name="ucmDecompFcstGroup">Series Decomposition and Forecast Plots</Option>
+            <Option defaultValue="1" inputType="checkbox" name="ucmForecastPlot">Series forecasts</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmDecompPlot">Smoothed component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmDecompVarPlot">Variance of smoothed component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmFDecompPlot">Filtered component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="ucmFDecompVarPlot">Variance of filtered component</Option>
+            
+            <!-- Moving average model options -->
+            <Option decimalPlaces="0" defaultValue="1" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than 0 and less than 14." maxValue="13" minValue="1" missingMessage="Enter an integer greater than 0 and less than 14." name="maP" promptMessage="Enter an integer greater than 0 and less than 14." rangeMessage="Enter an integer greater than 0 and less than 14." width="3em">Window(periods):</Option>
+
+            <!-- Random walk model options -->
+            <Option defaultValue="0" inputType="checkbox" name="drift">Drift</Option>
+            <Option defaultValue="0" inputType="checkbox" name="trend">Trend</Option>
+            <Option defaultValue="0" inputType="checkbox" name="seasonal">Seasonal</Option>
+            
+            <!-- Forecast related options -->
+            <Option inputType="string" name="optionsTab">OPTIONS</Option>
+            <Option inputType="string" name="forecastSettingsGroup">FORECAST SETTINGS</Option>
+            <Option decimalPlaces="0" defaultValue="12" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 0 and less than 32768." maxValue="32767" minValue="0" missingMessage="Enter an integer greater than or equal to 0 and less than 32768." name="forecastPeriods" promptMessage="Enter an integer greater than or equal to 0 and less than 32768." rangeMessage="Enter an integer greater than or equal to 0 and less than 32768." width="5em">Number of periods to forecast:</Option>
+            <Option defaultValue="forecastConfLevelDefaultChoice" inputType="combobox" name="forecastConfLevelCombo">Forecast confidence level:</Option>
+            <Option inputType="string" name="forecastConfLevelDefaultChoice">95%</Option>
+            <Option inputType="string" name="forecastConfLevel99Choice">99%</Option>
+            <Option inputType="string" name="forecastConfLevel90Choice">90%</Option>
+            <Option inputType="string" name="forecastConfLevelCustomChoice">Use custom value</Option>
+            <Option defaultValue="95" indent="1" inputType="numbertext" invalidMessage="Enter a number greater than 0 and less than 100." maxValue="99.99999999999999" minValue="0.000000000000000000000001" missingMessage="Enter a number greater than 0 and less than 100." name="forecastConfLevel" promptMessage="Enter a number greater than 0 and less than 100." rangeMessage="Enter a number greater than 0 and less than 100." required="true" width="6em">Custom confidence level (%):</Option>
+            <Option decimalPlaces="0" defaultValue="0" increment="1" inputType="numstepper" invalidMessage="Enter an integer greater than or equal to 0 and less than 32768." maxValue="32767" minValue="0" missingMessage="Enter an integer greater than or equal to 0 and less than 32768." name="forecastHoldback" promptMessage="Enter an integer greater than or equal to 0 and less than 32768." rangeMessage="Enter an integer greater than or equal to 0 and less than 32768." width="6em">Number of periods to hold back:</Option>
+
+            <!-- Outlier detection -->
+            <Option inputType="string" name="outlierGroup">OUTLIER DETECTION</Option>
+            <Option defaultValue="1" inputType="checkbox" name="outlierDetection">Perform outlier detection</Option>
+
+            <!-- Output related options -->
+            <Option inputType="string" name="outputTab">OUTPUT</Option>
+            <Option inputType="string" name="outputGroup">OUTPUT DATA SET</Option>
+
+            <Option defaultValue="0" inputType="checkbox" name="outputDS">Create output data set</Option>
+            <Option defaultValue="work.out" indent="1" inputType="outputdata" name="outputDSName" required="true" unique="true">Data set name:</Option>
+
+            <Option inputType="checkbox" name="outputEST">Create parameter estimates data set</Option>
+            <Option defaultValue="work.outest" indent="1" inputType="outputdata" name="outputESTName" required="true" unique="true">Data set name:</Option>
+
+            <Option inputType="checkbox" name="outputSTAT">Create fit statistics data set</Option>
+            <Option defaultValue="work.outstat" indent="1" inputType="outputdata" name="outputSTATName" required="true" unique="true">Data set name:</Option>
+
+            <Option inputType="checkbox" name="outputFOR">Create forecasted values data set</Option>
+            <Option defaultValue="work.outfor" indent="1" inputType="outputdata" name="outputFORName" required="true" unique="true">Data set name:</Option>
+
+            <Option inputType="checkbox" name="outputSUM">Create summary data set</Option>
+            <Option defaultValue="work.outsum" indent="1" inputType="outputdata" name="outputSUMName" required="true" unique="true">Data set name:</Option>
+
+            <Option inputType="checkbox" name="outputCOV">Create covariances and correlations data set</Option>
+            <Option defaultValue="work.outcov" indent="1" inputType="outputdata" name="outputCOVName" required="true" unique="true">Data set name:</Option>
+
+            <Option inputType="checkbox" name="outputMODEL">Create model information data set</Option>
+            <Option defaultValue="work.outmodel" indent="1" inputType="outputdata" name="outputMODELName" required="true" unique="true">Data set name:</Option>
+            
+            <Option indent="1" inputType="string" name="esmOutputNote">The output data set includes forecast and actual values.</Option>
+            <Option indent="1" inputType="string" name="arimaOutputNote">The output data set includes forecast and actual values and confidence limits.</Option>
+
+            <!-- ARIMA plots -->
+            <Option inputType="string" name="arimaPlotsGroup">Plots</Option>
+            <Option defaultValue="arimaDefaultPlots" inputType="combobox" name="arimaSelectPlotsCombo">Select plots to display:</Option>
+            <Option inputType="string" name="arimaDefaultPlots">Default plots</Option>
+            <Option inputType="string" name="arimaSelectedPlots">Selected plots</Option>
+            <Option inputType="string" name="arimaAllPlots">All plots</Option>
+            <Option inputType="string" name="arimaNoPlots">No plots</Option>
+
+            <Option indent="1" inputType="string" name="arimaSeriesPlotsGroup">Series Plots</Option>
+            <Option indent="1" inputType="string" name="arimaResidualPlotsGroup">Residual Plots</Option>
+            <Option indent="1" inputType="string" name="arimaForecastPlotsGroup">Forecast Plots</Option>
+
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaSeriesACF">Autocorrelations plot</Option>
+            <Option defaultValue="1" inputType="checkbox" name="plotArimaSeriesCORR">Panels of correlation plots</Option>
+            <Option defaultValue="1" inputType="checkbox" name="plotArimaSeriesCROSSCORR">Panels of cross-correlation plots</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaSeriesIACF">Inverse-autocorrelations plot</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaSeriesPACF">Partial-autocorrelations plot</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaResidualACF">Residual autocorrelations plot</Option>
+            <Option defaultValue="1" inputType="checkbox" name="plotArimaResidualCORR">Panel of the residual correlation diagnostics</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaResidualHIST">Histogram of the residuals</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaResidualIACF">Residual inverse-autocorrelations plot</Option>
+            <Option defaultValue="1" inputType="checkbox" name="plotArimaResidualNORMAL">Panel of the residual normality diagnostics</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaResidualPACF">Residual partial-autocorrelations</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaResidualQQ">Normal quantile plot of the residuals</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaResidualSMOOTH">Scatter plot of the residuals against time</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaResidualWN">Ljung-Box white-noise test p-values at different lags</Option>
+            <Option defaultValue="1" inputType="checkbox" name="plotArimaForecastFORECAST">One-step-ahead and multistep-ahead forecasts</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotArimaForecastFORECASTONLY">Multistep-ahead forecasts in the forecast region</Option>
+
+            <!-- ESM plots -->
+            <Option inputType="string" name="esmPlotsGroup">Plots</Option>
+            <Option defaultValue="esmDefaultPlots" inputType="combobox" name="esmSelectPlotsCombo">Select plots to display:</Option>
+            <Option inputType="string" name="esmDefaultPlots">Default plots</Option>
+            <Option inputType="string" name="esmSelectedPlots">Selected plots</Option>
+            <Option inputType="string" name="esmAllPlots">All plots</Option>
+            <Option inputType="string" name="esmNoPlots">No plots</Option>
+
+            <Option indent="1" inputType="string" name="esmModelPlotsGroup">Model Plots</Option>
+            <Option indent="1" inputType="string" name="esmErrorPlotsGroup">Error Plots</Option>
+            <Option indent="1" inputType="string" name="esmForecastPlotsGroup">Forecast Plots</Option>
+
+            <Option defaultValue="0" inputType="checkbox" name="plotESMModelMODELS">Model graphics</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMModelLEVELS">Smoothed level component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMModelSEASONS">Smoothed seasonal component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMModelTRENDS">Smoothed trend (slope) component</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMErrorACF">Prediction error autocorrelation function plot</Option>
+            <Option defaultValue="1" inputType="checkbox" name="plotESMErrorCORR">Prediction error correlation graphics panel</Option>
+            <Option defaultValue="1" inputType="checkbox" name="plotESMErrorERRORS">Prediction error time series</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMErrorIACF">Prediction error inverse autocorrelation function</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMErrorPACF">Prediction error partial autocorrelation function</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMErrorPERIODGRAM">Prediction error periodogram</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMErrorSPECTRUM">Periodogram and smoothed periodogram of prediction error series</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMErrorWN">White noise graphics</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMForecastFORECASTS">Forecast</Option>
+            <Option defaultValue="0" inputType="checkbox" name="plotESMForecastFORECASTSONLY">Forecast in the forecast horizon only</Option>
+            <Option defaultValue="1" inputType="checkbox" name="plotESMForecastMODELFORECASTS">One-step ahead model forecast and its confidence bands</Option>
+        </Options>
+    </Metadata>
+
+    <UI>
+        <Container option="dataTab">
+            <Group open="true" option="dataGroup">
+                <DataItem data="dataset"/>
+                <Group open="true" option="taskNoteGroup">
+                    <OptionItem option="taskNote"/>
+                </Group>
+            </Group>
+            <Group open="true" option="rolesGroup">
+                <RoleItem role="dependVariable"/>
+            </Group>
+            <Group open="false" option="addRolesGroup">
+                <RoleItem role="timeID"/>
+                <Group open="true" option="timeIDPropertyGroup">
+                    <OptionItem option="timeIDProps"/>
+                </Group>
+                <OptionItem option="seasonalLen"/>
+                <RoleItem role="byVariables"/>
+            </Group>
+        </Container>
+
+        <Container option="modelTab">
+            <Group open="true" option="modelGroup">
+                <OptionChoice option="modelTypeCombo">
+                    <OptionItem option="modelTypeRW"/>
+                    <OptionItem option="modelTypeMA"/>
+                    <OptionItem option="modelTypeESM"/>
+                    <OptionItem option="modelTypeARIMA"/>
+                    <OptionItem option="modelTypeARIMAX"/>
+                    <OptionItem option="modelTypeUCM"/>
+                </OptionChoice>
+                
+                <Group open="true" option="esmGroup">
+                    <OptionChoice option="esmModelCombo">
+                        <OptionItem option="esmModelSIMPLE"/>
+                        <OptionItem option="esmModelDOUBLE"/>
+                        <OptionItem option="esmModelLINEAR"/>
+                        <OptionItem option="esmModelDAMPTREND"/>
+                        <OptionItem option="esmModelADDSEASONAL"/>
+                        <OptionItem option="esmModelMULTSEASONAL"/>
+                        <OptionItem option="esmModelWINTERS"/>
+                        <OptionItem option="esmModelADDWINTERS"/>
+                    </OptionChoice>
+                    <OptionChoice option="esmTransformCombo">
+                        <OptionItem option="esmTransformNONE"/>
+                        <OptionItem option="esmTransformLOG"/>
+                        <OptionItem option="esmTransformSQRT"/>
+                        <OptionItem option="esmTransformLOGGISTIC"/>
+                        <OptionItem option="esmTransformBOXCOX"/>
+                    </OptionChoice>
+                    <OptionItem option="boxCoxParam"/>
+                    <OptionChoice option="esmForecastTypeCombo">
+                        <OptionItem option="esmForecastTypeMEAN"/>
+                        <OptionItem option="esmForecastTypeMEDIAN"/>
+                    </OptionChoice>
+                </Group>
+                
+                <Group open="true" option="arimaGroup">
+                    <Group open="true" option="arimaSettingsGroup">
+                        <OptionItem option="arimaP"/>
+                        <OptionItem option="arimaD"/>
+                        <OptionItem option="arimaQ"/>
+                    </Group>
+                    <Group open="true" option="seasonalArimaSettingsGroup">
+                        <OptionItem option="arimaPP"/>
+                        <OptionItem option="arimaDD"/>
+                        <OptionItem option="arimaQQ"/>
+                    </Group>
+                    <Group open="true" option="arimaxGroup">
+                        <RoleItem role="independVariable"/>
+                    </Group>
+                    <OptionItem option="Intercept"/>
+                </Group>
+                
+                <Group open="true" option="ucmGroup">
+                    <Group open="false" option="ucmRegressionGroup">
+                        <OptionItem option="ucmIndependVar"/>
+                        <RoleItem role="ucmIndependVariable"/>
+                    </Group>
+                    <Group open="true" option="ucmIrregularCompGroup">
+                        <OptionItem option="ucmIrregular"/>
+                        <OptionItem option="ucmIrregularVariance"/>
+                        <OptionItem option="ucmIrregularInitialVariance"/>
+                        <OptionItem option="ucmIrregularNoest"/>
+                    </Group>
+                    <Group open="true" option="ucmTrendCompGroup">
+                        <OptionItem option="ucmLevel"/>
+                        <OptionItem option="ucmLevelVariance"/>
+                        <OptionItem option="ucmLevelInitialVariance"/>
+                        <OptionItem option="ucmLevelNoest"/>
+                        <OptionItem option="ucmLevelCheckBreaks"/>
+                        <OptionItem option="ucmSlope"/>
+                        <OptionItem option="ucmSlopeVariance"/>
+                        <OptionItem option="ucmSlopeInitialVariance"/>
+                        <OptionItem option="ucmSlopeNoest"/>
+                    </Group>
+                    <Group open="false" option="ucmSeasonalCompGroup">
+                        <OptionItem option="ucmSeasonal"/>
+                        <OptionItem option="ucmSeasonalNote"/>
+                        <OptionChoice option="ucmSeasonalType">
+                            <OptionItem option="ucmDummy"/>
+                            <OptionItem option="ucmTrig"/>
+                        </OptionChoice>
+                        <OptionItem option="ucmSeasonalVariance"/>
+                        <OptionItem option="ucmSeasonalInitialVariance"/>
+                        <OptionItem option="ucmSeasonalNoest"/>
+                    </Group>
+                    <Group open="false" option="ucmCycleCompGroup">
+                        <OptionItem option="ucmCycle"/>
+                        <OptionItem option="ucmCyclePeriod"/>
+                        <OptionItem option="ucmCycleInitialPeriod"/>
+                        <OptionItem option="ucmCyclePeriodNoest"/>
+                        <OptionItem option="ucmCycleDamping"/>
+                        <OptionItem option="ucmCycleInitialDamping"/>
+                        <OptionItem option="ucmCycleDampingNoest"/>
+                        <OptionItem option="ucmCycleVariance"/>
+                        <OptionItem option="ucmCycleInitialVariance"/>
+                        <OptionItem option="ucmCycleVarianceNoest"/>
+                    </Group>
+                </Group>
+                <Group open="false" option="ucmPlotsGroup">
+                    <OptionChoice option="ucmSelectPlotsCombo">
+                        <OptionItem option="ucmDefaultPlots"/>
+                        <OptionItem option="ucmSelectedPlots"/>
+                        <OptionItem option="ucmAllPlots"/>
+                        <OptionItem option="ucmNoPlots"/>
+                    </OptionChoice>
+                    <Group open="true" option="ucmResidualPlotsGroup">
+                        <OptionItem option="ucmResidualPanel"/>
+                        <OptionItem option="ucmResidualAcfPlot"/>
+                        <OptionItem option="ucmResidualPacfPlot"/>
+                        <OptionItem option="ucmResidualHistogram"/>
+                        <OptionItem option="ucmResidualQQ"/>
+                        <OptionItem option="ucmResidualNeedle"/>
+                        <OptionItem option="ucmResidualModel"/>
+                        <OptionItem option="ucmResidualLoess"/>
+                        <OptionItem option="ucmWnPlot"/>
+                        <OptionItem option="ucmResidualCusum"/>
+                        <OptionItem option="ucmResidualCusumsq"/>
+                    </Group>
+                    <Group open="true" option="ucmSmoothCompPlotsGroup">
+                        <OptionItem option="ucmSmoothIrregular"/>
+                        <OptionItem option="ucmSmoothLevel"/>
+                        <OptionItem option="ucmSmoothSlope"/>
+                        <OptionItem option="ucmSmoothSeason"/>
+                        <OptionItem option="ucmSmoothCycle"/>
+                    </Group>
+                    <Group open="true" option="ucmFilterCompPlotsGroup">
+                        <OptionItem option="ucmFilterLevel"/>
+                        <OptionItem option="ucmFilterSlope"/>
+                        <OptionItem option="ucmFilterSeason"/>
+                        <OptionItem option="ucmFilterCycle"/>
+                    </Group>
+                    <Group open="true" option="ucmDecompFcstGroup">
+                        <OptionItem option="ucmForecastPlot"/>
+                        <OptionItem option="ucmDecompPlot"/>
+                        <OptionItem option="ucmDecompVarPlot"/>
+                        <OptionItem option="ucmFDecompPlot"/>
+                        <OptionItem option="ucmFDecompVarPlot"/>
+                    </Group>
+                </Group>
+                
+                <Group open="true" option="maGroup">
+                    <OptionItem option="maP"/>
+                </Group>
+
+                <Group open="true" option="rwGroup">
+                    <OptionItem option="drift"/>
+                    <OptionItem option="trend"/>
+                    <OptionItem option="seasonal"/>
+                </Group>
+                
+                <Group open="false" option="arimaPlotsGroup">
+                    <OptionChoice option="arimaSelectPlotsCombo">
+                        <OptionItem option="arimaDefaultPlots"/>
+                        <OptionItem option="arimaSelectedPlots"/>
+                        <OptionItem option="arimaAllPlots"/>
+                        <OptionItem option="arimaNoPlots"/>
+                    </OptionChoice>
+                    <Group open="true" option="arimaSeriesPlotsGroup">
+                        <OptionItem option="plotArimaSeriesACF"/>
+                        <OptionItem option="plotArimaSeriesCORR"/>
+                        <OptionItem option="plotArimaSeriesCROSSCORR"/>
+                        <OptionItem option="plotArimaSeriesIACF"/>
+                        <OptionItem option="plotArimaSeriesPACF"/>
+                    </Group>
+                    <Group open="true" option="arimaResidualPlotsGroup">
+                        <OptionItem option="plotArimaResidualACF"/>
+                        <OptionItem option="plotArimaResidualCORR"/>
+                        <OptionItem option="plotArimaResidualHIST"/>
+                        <OptionItem option="plotArimaResidualIACF"/>
+                        <OptionItem option="plotArimaResidualNORMAL"/>
+                        <OptionItem option="plotArimaResidualPACF"/>
+                        <OptionItem option="plotArimaResidualQQ"/>
+                        <OptionItem option="plotArimaResidualSMOOTH"/>
+                        <OptionItem option="plotArimaResidualWN"/>
+                    </Group>
+                    <Group open="true" option="arimaForecastPlotsGroup">
+                        <OptionItem option="plotArimaForecastFORECAST"/>
+                        <OptionItem option="plotArimaForecastFORECASTONLY"/>
+                    </Group>
+                </Group>
+                
+                
+                <Group open="false" option="esmPlotsGroup">
+                    <OptionChoice option="esmSelectPlotsCombo">
+                        <OptionItem option="esmDefaultPlots"/>
+                        <OptionItem option="esmSelectedPlots"/>
+                        <OptionItem option="esmAllPlots"/>
+                        <OptionItem option="esmNoPlots"/>
+                    </OptionChoice>
+                    <Group open="true" option="esmModelPlotsGroup">
+                        <OptionItem option="plotESMModelMODELS"/>
+                        <OptionItem option="plotESMModelLEVELS"/>
+                        <OptionItem option="plotESMModelSEASONS"/>
+                        <OptionItem option="plotESMModelTRENDS"/>
+                    </Group>
+                    <Group open="true" option="esmErrorPlotsGroup">
+                        <OptionItem option="plotESMErrorACF"/>
+                        <OptionItem option="plotESMErrorCORR"/>
+                        <OptionItem option="plotESMErrorERRORS"/>
+                        <OptionItem option="plotESMErrorIACF"/>
+                        <OptionItem option="plotESMErrorPACF"/>
+                        <OptionItem option="plotESMErrorPERIODGRAM"/>
+                        <OptionItem option="plotESMErrorSPECTRUM"/>
+                        <OptionItem option="plotESMErrorWN"/>
+                    </Group>
+                    <Group open="true" option="esmForecastPlotsGroup">
+                        <OptionItem option="plotESMForecastFORECASTS"/>
+                        <OptionItem option="plotESMForecastFORECASTSONLY"/>
+                        <OptionItem option="plotESMForecastMODELFORECASTS"/>
+                    </Group>
+                </Group>
+                
+            </Group>
+        </Container>
+
+        <Container option="optionsTab">
+            <Group open="true" option="forecastSettingsGroup">
+                <OptionItem option="forecastPeriods"/>
+                <OptionChoice option="forecastConfLevelCombo">
+                    <OptionItem option="forecastConfLevel90Choice"/>
+                    <OptionItem option="forecastConfLevelDefaultChoice"/>
+                    <OptionItem option="forecastConfLevel99Choice"/>
+                    <OptionItem option="forecastConfLevelCustomChoice"/>
+                </OptionChoice>
+                <OptionItem option="forecastConfLevel"/>
+                <OptionItem option="forecastHoldback"/>
+            </Group>
+            <Group open="true" option="outlierGroup">
+                <OptionItem option="outlierDetection"/>
+            </Group>
+        </Container>
+
+        <Container option="outputTab">
+            <Group open="true" option="outputGroup">
+                <!-- ESM and ARIMA -->
+                <OptionItem option="outputDS"/>
+                <OptionItem option="esmOutputNote"/>
+                <OptionItem option="arimaOutputNote"/>
+                <OptionItem option="outputDSName"/>
+                <!-- for all models -->
+                <OptionItem option="outputEST"/>
+                <OptionItem option="outputESTName"/>
+                <!-- ESM and ARIMA -->
+                <OptionItem option="outputSTAT"/>
+                <OptionItem option="outputSTATName"/>
+                <!-- ESM and UCM -->
+                <OptionItem option="outputFOR"/>
+                <OptionItem option="outputFORName"/>
+                <!-- ESM -->
+                <OptionItem option="outputSUM"/>
+                <OptionItem option="outputSUMName"/>
+                <!-- ARIMA -->
+                <OptionItem option="outputCOV"/>
+                <OptionItem option="outputCOVName"/>
+                <OptionItem option="outputMODEL"/>
+                <OptionItem option="outputMODELName"/>
+            </Group>
+        </Container>
+    </UI>
+
+    <Dependencies>
+        <Dependency condition="$timeID.size()&gt;=1">
+            <Target action="show" conditionResult="true" option="timeIDPropertyGroup"/>
+            <Target action="hide" conditionResult="false" option="timeIDPropertyGroup"/>
+            <Target action="hide" conditionResult="true" option="seasonalLen"/>
+            <Target action="show" conditionResult="false" option="seasonalLen"/>
+            <Target action="set" conditionResult="true" option="timeIDProps" property="readOnly" value="true"/>
+        </Dependency>
+        <Dependency condition="(($forecastConfLevelCombo=='forecastConfLevelCustomChoice'))">
+            <Target action="show" conditionResult="true" option="forecastConfLevel"/>
+            <Target action="hide" conditionResult="false" option="forecastConfLevel"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ESM')">
+            <Target action="show" conditionResult="true" option="esmGroup"/>
+            <Target action="hide" conditionResult="false" option="esmGroup"/>
+            <Target action="show" conditionResult="true" option="esmPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="esmPlotsGroup"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ARIMA' || $modelTypeCombo=='ARIMAX')">
+            <Target action="show" conditionResult="true" option="arimaGroup"/>
+            <Target action="hide" conditionResult="false" option="arimaGroup"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ARIMAX')">
+            <Target action="show" conditionResult="true" option="arimaxGroup"/>
+            <Target action="hide" conditionResult="false" option="arimaxGroup"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='UCM')">
+            <Target action="show" conditionResult="true" option="ucmGroup"/>
+            <Target action="hide" conditionResult="false" option="ucmGroup"/>
+            <Target action="show" conditionResult="true" option="ucmPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="ucmPlotsGroup"/>
+            <Target action="show" conditionResult="true" option="outputFOR"/>
+            <Target action="hide" conditionResult="false" option="outputFOR"/>
+            <Target action="show" conditionResult="true" option="outputFORName"/>
+            <Target action="hide" conditionResult="false" option="outputFORName"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='MA')">
+            <Target action="show" conditionResult="true" option="maGroup"/>
+            <Target action="hide" conditionResult="false" option="maGroup"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='RW')">
+            <Target action="show" conditionResult="true" option="rwGroup"/>
+            <Target action="hide" conditionResult="false" option="rwGroup"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='UCM' || $modelTypeCombo=='ARIMA' || $modelTypeCombo=='ARIMAX' || $modelTypeCombo=='MA' || $modelTypeCombo=='RW')">
+            <Target action="show" conditionResult="true" option="outlierGroup"/>
+            <Target action="hide" conditionResult="false" option="outlierGroup"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ESM' || $modelTypeCombo=='ARIMA' || $modelTypeCombo=='ARIMAX' || $modelTypeCombo=='MA' || $modelTypeCombo=='RW')">
+            <Target action="show" conditionResult="true" option="outputDS"/>
+            <Target action="hide" conditionResult="false" option="outputDS"/>
+            <Target action="show" conditionResult="true" option="outputDSName"/>
+            <Target action="hide" conditionResult="false" option="outputDSName"/>
+            <Target action="show" conditionResult="true" option="outputSTAT"/>
+            <Target action="hide" conditionResult="false" option="outputSTAT"/>
+            <Target action="show" conditionResult="true" option="outputSTATName"/>
+            <Target action="hide" conditionResult="false" option="outputSTATName"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ESM' || $modelTypeCombo=='UCM')">
+            <Target action="show" conditionResult="true" option="outputFOR"/>
+            <Target action="hide" conditionResult="false" option="outputFOR"/>
+            <Target action="show" conditionResult="true" option="outputFORName"/>
+            <Target action="hide" conditionResult="false" option="outputFORName"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ESM')">
+            <Target action="show" conditionResult="true" option="outputSUM"/>
+            <Target action="hide" conditionResult="false" option="outputSUM"/>
+            <Target action="show" conditionResult="true" option="outputSUMName"/>
+            <Target action="hide" conditionResult="false" option="outputSUMName"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ESM')">
+            <Target action="show" conditionResult="true" option="esmOutputNote"/>
+            <Target action="hide" conditionResult="false" option="esmOutputNote"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ARIMA' || $modelTypeCombo=='ARIMAX' || $modelTypeCombo=='MA' || $modelTypeCombo=='RW')">
+            <Target action="show" conditionResult="true" option="outputCOV"/>
+            <Target action="hide" conditionResult="false" option="outputCOV"/>
+            <Target action="show" conditionResult="true" option="outputCOVName"/>
+            <Target action="hide" conditionResult="false" option="outputCOVName"/>
+            <Target action="show" conditionResult="true" option="outputMODEL"/>
+            <Target action="hide" conditionResult="false" option="outputMODEL"/>
+            <Target action="show" conditionResult="true" option="outputMODELName"/>
+            <Target action="hide" conditionResult="false" option="outputMODELName"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='ARIMA' || $modelTypeCombo=='ARIMAX' || $modelTypeCombo=='MA' || $modelTypeCombo=='RW')">
+            <Target action="show" conditionResult="true" option="arimaOutputNote"/>
+            <Target action="hide" conditionResult="false" option="arimaOutputNote"/>
+        </Dependency>
+        <Dependency condition="($esmTransformCombo=='boxcox')">
+            <Target action="show" conditionResult="true" option="boxCoxParam"/>
+            <Target action="hide" conditionResult="false" option="boxCoxParam"/>
+        </Dependency>
+
+        <Dependency condition="($ucmIndependVar=='1')">
+            <Target action="show" conditionResult="true" option="ucmIndependVariable"/>
+            <Target action="hide" conditionResult="false" option="ucmIndependVariable"/>
+        </Dependency>
+        <Dependency condition="($ucmIrregular=='1')">
+            <Target action="show" conditionResult="true" option="ucmIrregularVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmIrregularVariance"/>
+        </Dependency>
+        <Dependency condition="($ucmIrregularVariance=='1')">
+            <Target action="show" conditionResult="true" option="ucmIrregularInitialVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmIrregularInitialVariance"/>
+            <Target action="show" conditionResult="true" option="ucmIrregularNoest"/>
+            <Target action="hide" conditionResult="false" option="ucmIrregularNoest"/>
+        </Dependency>
+        <Dependency condition="($ucmLevel=='1')">
+            <Target action="show" conditionResult="true" option="ucmLevelVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmLevelVariance"/>
+            <Target action="show" conditionResult="true" option="ucmLevelCheckBreaks"/>
+            <Target action="hide" conditionResult="false" option="ucmLevelCheckBreaks"/>
+            <Target action="enable" conditionResult="true" option="ucmSlope"/>
+            <Target action="disable" conditionResult="false" option="ucmSlope"/>
+        </Dependency>
+        <Dependency condition="($ucmLevelVariance=='1')">
+            <Target action="show" conditionResult="true" option="ucmLevelInitialVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmLevelInitialVariance"/>
+            <Target action="show" conditionResult="true" option="ucmLevelNoest"/>
+            <Target action="hide" conditionResult="false" option="ucmLevelNoest"/>
+        </Dependency>
+        <Dependency condition="($ucmSlope=='1')">
+            <Target action="show" conditionResult="true" option="ucmSlopeVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmSlopeVariance"/>
+        </Dependency>
+        <Dependency condition="($ucmSlopeVariance=='1')">
+            <Target action="show" conditionResult="true" option="ucmSlopeInitialVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmSlopeInitialVariance"/>
+            <Target action="show" conditionResult="true" option="ucmSlopeNoest"/>
+            <Target action="hide" conditionResult="false" option="ucmSlopeNoest"/>
+        </Dependency>
+        <Dependency condition="($modelTypeCombo=='UCM' &amp;&amp; ($MathTool.toInteger($seasonalLen)&gt;1 || $MathTool.toInteger($timeIDProps.cycleLen)&gt;1))">
+            <Target action="enable" conditionResult="true" option="ucmSeasonal"/>
+            <Target action="disable" conditionResult="false" option="ucmSeasonal"/>
+            <Target action="hide" conditionResult="true" option="ucmSeasonalNote"/>
+            <Target action="show" conditionResult="false" option="ucmSeasonalNote"/>
+        </Dependency>
+        <Dependency condition="($ucmSeasonal=='1')">
+            <Target action="show" conditionResult="true" option="ucmSeasonalType"/>
+            <Target action="hide" conditionResult="false" option="ucmSeasonalType"/>
+            <Target action="show" conditionResult="true" option="ucmSeasonalVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmSeasonalVariance"/>
+        </Dependency>
+        <Dependency condition="($ucmSeasonalVariance=='1')">
+            <Target action="show" conditionResult="true" option="ucmSeasonalInitialVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmSeasonalInitialVariance"/>
+            <Target action="show" conditionResult="true" option="ucmSeasonalNoest"/>
+            <Target action="hide" conditionResult="false" option="ucmSeasonalNoest"/>
+        </Dependency>
+        <Dependency condition="($ucmCycle=='1')">
+            <Target action="show" conditionResult="true" option="ucmCyclePeriod"/>
+            <Target action="hide" conditionResult="false" option="ucmCyclePeriod"/>
+            <Target action="show" conditionResult="true" option="ucmCycleDamping"/>
+            <Target action="hide" conditionResult="false" option="ucmCycleDamping"/>
+            <Target action="show" conditionResult="true" option="ucmCycleVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmCycleVariance"/>
+        </Dependency>
+        <Dependency condition="($ucmCyclePeriod=='1')">
+            <Target action="show" conditionResult="true" option="ucmCycleInitialPeriod"/>
+            <Target action="hide" conditionResult="false" option="ucmCycleInitialPeriod"/>
+            <Target action="show" conditionResult="true" option="ucmCyclePeriodNoest"/>
+            <Target action="hide" conditionResult="false" option="ucmCyclePeriodNoest"/>
+        </Dependency>
+        <Dependency condition="($ucmCycleDamping=='1')">
+            <Target action="show" conditionResult="true" option="ucmCycleInitialDamping"/>
+            <Target action="hide" conditionResult="false" option="ucmCycleInitialDamping"/>
+            <Target action="show" conditionResult="true" option="ucmCycleDampingNoest"/>
+            <Target action="hide" conditionResult="false" option="ucmCycleDampingNoest"/>
+        </Dependency>
+        <Dependency condition="($ucmCycleVariance=='1')">
+            <Target action="show" conditionResult="true" option="ucmCycleInitialVariance"/>
+            <Target action="hide" conditionResult="false" option="ucmCycleInitialVariance"/>
+            <Target action="show" conditionResult="true" option="ucmCycleVarianceNoest"/>
+            <Target action="hide" conditionResult="false" option="ucmCycleVarianceNoest"/>
+        </Dependency>
+        <Dependency condition="($ucmSelectPlotsCombo=='ucmSelectedPlots')">
+            <Target action="show" conditionResult="true" option="ucmResidualPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="ucmResidualPlotsGroup"/>
+            <Target action="show" conditionResult="true" option="ucmSmoothCompPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="ucmSmoothCompPlotsGroup"/>
+            <Target action="show" conditionResult="true" option="ucmFilterCompPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="ucmFilterCompPlotsGroup"/>
+            <Target action="show" conditionResult="true" option="ucmDecompFcstGroup"/>
+            <Target action="hide" conditionResult="false" option="ucmDecompFcstGroup"/>
+        </Dependency>
+        <!-- Figure out how to hide group when no component is selected!!!
+        <Dependency condition="($ucmSelectPlotsCombo=='ucmSelectedPlots' &amp;&amp; ($ucmIrregular=='1' || $ucmLevel=='1' || $ucmSlope=='1' || $ucmSeasonal=='1' || $ucmCycle=='1'))">
+            <Target option="ucmSmoothCompPlotsGroup" conditionResult="true" action="show"/>
+            <Target option="ucmSmoothCompPlotsGroup" conditionResult="false" action="hide"/>
+            <Target option="ucmFilterCompPlotsGroup" conditionResult="true" action="show"/>
+            <Target option="ucmFilterCompPlotsGroup" conditionResult="false" action="hide"/>
+        </Dependency>  -->
+        <Dependency condition="($ucmSelectPlotsCombo=='ucmSelectedPlots' &amp;&amp; $ucmIrregular=='1')">
+            <Target action="show" conditionResult="true" option="ucmSmoothIrregular"/>
+            <Target action="hide" conditionResult="false" option="ucmSmoothIrregular"/>
+        </Dependency>
+        <Dependency condition="($ucmSelectPlotsCombo=='ucmSelectedPlots' &amp;&amp; $ucmLevel=='1')">
+            <Target action="show" conditionResult="true" option="ucmSmoothLevel"/>
+            <Target action="hide" conditionResult="false" option="ucmSmoothLevel"/>
+            <Target action="show" conditionResult="true" option="ucmFilterLevel"/>
+            <Target action="hide" conditionResult="false" option="ucmFilterLevel"/>
+        </Dependency>
+        <Dependency condition="($ucmSelectPlotsCombo=='ucmSelectedPlots' &amp;&amp; $ucmSlope=='1')">
+            <Target action="show" conditionResult="true" option="ucmSmoothSlope"/>
+            <Target action="hide" conditionResult="false" option="ucmSmoothSlope"/>
+            <Target action="show" conditionResult="true" option="ucmFilterSlope"/>
+            <Target action="hide" conditionResult="false" option="ucmFilterSlope"/>
+        </Dependency>
+        <Dependency condition="($ucmSelectPlotsCombo=='ucmSelectedPlots' &amp;&amp; $ucmSeasonal=='1')">
+            <Target action="show" conditionResult="true" option="ucmSmoothSeason"/>
+            <Target action="hide" conditionResult="false" option="ucmSmoothSeason"/>
+            <Target action="show" conditionResult="true" option="ucmFilterSeason"/>
+            <Target action="hide" conditionResult="false" option="ucmFilterSeason"/>
+        </Dependency>
+        <Dependency condition="($ucmSelectPlotsCombo=='ucmSelectedPlots' &amp;&amp; $ucmCycle=='1')">
+            <Target action="show" conditionResult="true" option="ucmSmoothCycle"/>
+            <Target action="hide" conditionResult="false" option="ucmSmoothCycle"/>
+            <Target action="show" conditionResult="true" option="ucmFilterCycle"/>
+            <Target action="hide" conditionResult="false" option="ucmFilterCycle"/>
+        </Dependency>
+        
+        <Dependency condition="($outputDS=='1')">
+            <Target action="enable" conditionResult="true" option="outputDSName"/>
+            <Target action="disable" conditionResult="false" option="outputDSName"/>
+        </Dependency>
+        <Dependency condition="($outputDS=='1' &amp;&amp; $modelTypeCombo=='ESM')">
+            <Target action="enable" conditionResult="true" option="esmOutputNote"/>
+            <Target action="disable" conditionResult="false" option="esmOutputNote"/>
+        </Dependency>
+        <Dependency condition="($outputDS=='1' &amp;&amp; ($modelTypeCombo=='ARIMA' || $modelTypeCombo=='ARIMAX' || $modelTypeCombo=='MA' || $modelTypeCombo=='RW'))">
+            <Target action="enable" conditionResult="true" option="arimaOutputNote"/>
+            <Target action="disable" conditionResult="false" option="arimaOutputNote"/>
+        </Dependency>
+        <Dependency condition="($outputEST=='1')">
+            <Target action="enable" conditionResult="true" option="outputESTName"/>
+            <Target action="disable" conditionResult="false" option="outputESTName"/>
+        </Dependency>
+        <Dependency condition="($outputSTAT=='1')">
+            <Target action="enable" conditionResult="true" option="outputSTATName"/>
+            <Target action="disable" conditionResult="false" option="outputSTATName"/>
+        </Dependency>
+        <Dependency condition="($outputFOR=='1')">
+            <Target action="enable" conditionResult="true" option="outputFORName"/>
+            <Target action="disable" conditionResult="false" option="outputFORName"/>
+        </Dependency>
+        <Dependency condition="($outputSUM=='1')">
+            <Target action="enable" conditionResult="true" option="outputSUMName"/>
+            <Target action="disable" conditionResult="false" option="outputSUMName"/>
+        </Dependency>
+        <Dependency condition="($outputCOV=='1')">
+            <Target action="enable" conditionResult="true" option="outputCOVName"/>
+            <Target action="disable" conditionResult="false" option="outputCOVName"/>
+        </Dependency>
+        <Dependency condition="($outputMODEL=='1')">
+            <Target action="enable" conditionResult="true" option="outputMODELName"/>
+            <Target action="disable" conditionResult="false" option="outputMODELName"/>
+        </Dependency>
+
+        <Dependency condition="($modelTypeCombo=='ARIMA' || $modelTypeCombo=='ARIMAX' || $modelTypeCombo=='MA' || $modelTypeCombo=='RW')">
+            <Target action="show" conditionResult="true" option="arimaPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="arimaPlotsGroup"/>
+        </Dependency>
+        
+        <Dependency condition="($esmSelectPlotsCombo=='esmSelectedPlots')">
+            <Target action="show" conditionResult="true" option="esmModelPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="esmModelPlotsGroup"/>
+            <Target action="show" conditionResult="true" option="esmErrorPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="esmErrorPlotsGroup"/>
+            <Target action="show" conditionResult="true" option="esmForecastPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="esmForecastPlotsGroup"/>
+        </Dependency>
+        <Dependency condition="($arimaSelectPlotsCombo=='arimaSelectedPlots')">
+            <Target action="show" conditionResult="true" option="arimaSeriesPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="arimaSeriesPlotsGroup"/>
+            <Target action="show" conditionResult="true" option="arimaResidualPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="arimaResidualPlotsGroup"/>
+            <Target action="show" conditionResult="true" option="arimaForecastPlotsGroup"/>
+            <Target action="hide" conditionResult="false" option="arimaForecastPlotsGroup"/>
+        </Dependency>
+
+    </Dependencies>
+    
+    <Requirements>
+        <Requirement condition="(!($timeID.size()==0 &amp;&amp; ($esmModelCombo=='addseasonal' || $esmModelCombo=='multseasonal' || $esmModelCombo=='winters' || $esmModelCombo=='addwinters')))">
+            <Message nlsKey="esmModelTimeIDRequiredMsgKey">This exponential smoothing model type requires a specified time ID variable.</Message>
+        </Requirement>
+    </Requirements>
+    
+    <CodeTemplate><![CDATA[
+ods noproctitle;
+ods graphics / imagemap=on;
+
+## Calculate alpha from confidence level
+#if ($forecastConfLevelCombo=="forecastConfLevelDefaultChoice") #set($alpha=0.05) #elseif($forecastConfLevelCombo=="forecastConfLevel99Choice") #set($alpha=0.01) 
+    #elseif($forecastConfLevelCombo=="forecastConfLevel90Choice") #set($alpha=0.10) #else #set($alpha="%sysevalf((100-$forecastConfLevel)/100)") #end
+
+#if($ucmResidualPanel=="1" || $ucmResidualAcfPlot=="1" || $ucmResidualPacfPlot=="1" || $ucmResidualHistogram=="1" || $ucmResidualQQ=="1" || $ucmResidualNeedle=="1" 
+    || $ucmResidualModel=="1" || $ucmResidualLoess=="1" || $ucmWnPlot=="1" || $ucmResidualCusum=="1"|| $ucmResidualCusumsq=="1") #set($residualPlotSelected=1) #end
+#if($ucmForecastPlot=="1" || $ucmDecompPlot=="1" || $ucmDecompVarPlot=="1" || $ucmFDecompPlot=="1" || $ucmFDecompVarPlot=="1") #set($decompFcstPlotSelected=1) #end
+
+#set($seasonality=1)
+#if($timeID.size()>0) #if($timeIDProps.cycleLen!="")#set($seasonality=$timeIDProps.cycleLen)#end #else #if($seasonalLen) #if($seasonalLen!="") #set($seasonality=$seasonalLen) #end #end #end
+
+## ESM plots= statement
+#set($esmPlotStmt="
+#if($esmSelectPlotsCombo=='esmAllPlots' || $esmSelectPlotsCombo=='esmDefaultPlots' || ($esmSelectPlotsCombo=='esmSelectedPlots' && ($plotESMModelMODELS=='1' || $plotESMModelLEVELS=='1' || $plotESMModelSEASONS=='1' || $plotESMModelTRENDS=='1'
+    || $plotESMErrorACF=='1' || $plotESMErrorCORR=='1' || $plotESMErrorERRORS=='1' || $plotESMErrorIACF=='1' || $plotESMErrorPACF=='1' || $plotESMErrorPERIODGRAM=='1' || $plotESMErrorSPECTRUM=='1'
+    || $plotESMErrorWN=='1' || $plotESMForecastFORECASTS=='1' || $plotESMForecastFORECASTSONLY=='1' || $plotESMForecastMODELFORECASTS=='1')))
+    plot = ( 
+    #if($esmSelectPlotsCombo=='esmAllPlots') all 
+    #elseif($esmSelectPlotsCombo=='esmDefaultPlots') corr errors modelforecasts
+    #else
+        #if($plotESMModelMODELS=='1') models #end
+        #if($plotESMModelLEVELS=='1') levels #end
+        #if($plotESMModelSEASONS=='1') seasons #end
+        #if($plotESMModelTRENDS=='1') trends #end
+        #if($plotESMErrorACF=='1') acf #end
+        #if($plotESMErrorCORR=='1') corr #end
+        #if($plotESMErrorERRORS=='1') errors #end
+        #if($plotESMErrorIACF=='1') iacf #end
+        #if($plotESMErrorPACF=='1') pacf #end
+        #if($plotESMErrorPERIODGRAM=='1') periodogram #end
+        #if($plotESMErrorSPECTRUM=='1') spectrum #end
+        #if($plotESMErrorWN=='1') wn #end
+        #if($plotESMForecastFORECASTS=='1') forecasts #end
+        #if($plotESMForecastFORECASTSONLY=='1') forecastsonly #end
+        #if($plotESMForecastMODELFORECASTS=='1') modelforecasts #end
+    #end
+)#end
+")
+
+## ARIMA plots= statement
+#set($arimaPlotStmt="plots
+    #if($arimaSelectPlotsCombo=='arimaNoPlots')=none
+    #elseif($arimaSelectPlotsCombo=='arimaAllPlots')=all 
+    #elseif($arimaSelectPlotsCombo=='arimaDefaultPlots')(only)=(series(corr crosscorr) residual(corr normal) forecast(forecastonly))
+    #else (only)=(
+        #if($plotArimaSeriesACF=='1' || $plotArimaSeriesCORR=='1' || $plotArimaSeriesCROSSCORR=='1' || $plotArimaSeriesIACF=='1' || $plotArimaSeriesPACF=='1') series(
+            #if($plotArimaSeriesACF=='1') acf #end
+            #if($plotArimaSeriesCORR=='1') corr #end
+            #if($plotArimaSeriesCROSSCORR=='1') crosscorr #end
+            #if($plotArimaSeriesIACF=='1') iacf #end
+            #if($plotArimaSeriesPACF=='1') pacf #end )
+        #end
+        #if($plotArimaResidualACF=='1' || $plotArimaResidualCORR=='1' || $plotArimaResidualHIST=='1' || $plotArimaResidualIACF=='1' || $plotArimaResidualNORMAL=='1' || $plotArimaResidualPACF=='1' || $plotArimaResidualQQ=='1' || $plotArimaResidualSMOOTH=='1' || $plotArimaResidualWN=='1') residual(
+            #if($plotArimaResidualACF=='1') acf #end
+            #if($plotArimaResidualCORR=='1') corr #end
+            #if($plotArimaResidualHIST=='1') hist #end
+            #if($plotArimaResidualIACF=='1') iacf #end
+            #if($plotArimaResidualNORMAL=='1') normal #end
+            #if($plotArimaResidualPACF=='1') pacf #end
+            #if($plotArimaResidualQQ=='1') qq #end
+            #if($plotArimaResidualSMOOTH=='1') smooth #end
+            #if($plotArimaResidualWN=='1') wn #end)
+        #end
+        #if($plotArimaForecastFORECAST=='1' || $plotArimaForecastFORECASTONLY=='1') forecast(
+            #if($plotArimaForecastFORECAST=='1') forecast #end
+            #if($plotArimaForecastFORECASTONLY=='1') forecastonly #end)
+        #end)
+    #end
+")
+
+### Preprocess input data
+#set($preProcessData=0)
+#if($byVariables.size()>0 || $timeID.size()>0)
+#set($preProcessData=1)
+proc sort data=$dataset out=Work.preProcessedData;
+   #if ($dataset.getWhereClause() != '')
+   where $dataset.getWhereClause();
+   #end
+   by #foreach($item in $byVariables) $item #end #foreach($item in $timeID) $item #end;
+run;
+#elseif ($dataset.getWhereClause() != '')
+#set($preProcessData=1)
+data Work.preProcessedData;
+    set $dataset(where=( $dataset.getWhereClause() ));
+run;
+#end
+
+
+#if( $modelTypeCombo=='ESM')
+##/****************************************************************************************/
+##/* Exponential Smoothing                                                                */
+
+proc esm data=#if($preProcessData > 0) Work.preProcessedData #else $dataset #end
+#if($forecastHoldback!="") back=$forecastHoldback #end #if($forecastPeriods!="") lead=$forecastPeriods #end
+#if($esmModelCombo=="addseasonal" || $esmModelCombo=="multseasonal" || $esmModelCombo=="winters" || $esmModelCombo=="addwinters")
+    #if($timeIDProps.cycleLen!="" && $timeIDProps.cycleLen!="1") seasonality=$timeIDProps.cycleLen #end
+#end
+
+$esmPlotStmt
+        #if($outputDSName) out=$outputDSName #end
+        #if($outputESTName) outest=$outputESTName #end
+        #if($outputSTATName) outstat=$outputSTATName #end
+        #if($outputFORName) outfor=$outputFORName #end
+        #if($outputSUMName) outsum=$outputSUMName #end
+    ;
+    
+    #if ($byVariables.size() > 0)
+        by #foreach( $item in $byVariables ) $item #end;
+    #end
+    
+    #if ($timeID.size() > 0)
+        ##  id statement
+        id #foreach($item in $timeID) $item #end interval=$timeIDProps.intervalName;
+    #end
+    
+    #if ($$dependVariable.size() > 0)
+        #foreach( $item in $dependVariable ) forecast $item / alpha=$alpha
+            model=$esmModelCombo
+        #if($esmTransformCombo) #if($esmTransformCombo == 'boxcox') transform=boxcox($boxCoxParam) #else transform=$esmTransformCombo #end #end
+            #if($esmForecastTypeCombo == 'median') median #end;
+        #end
+    #end
+    run;
+##/****************************************************************************************/
+
+#elseif( $modelTypeCombo=='ARIMA' || $modelTypeCombo=='ARIMAX')
+##/****************************************************************************************/
+##/* ARIMA or ARIMAX                                                                      */
+
+#define ($d)#if(!(($arimaD==0 || $arimaD=="") && ($arimaDD==0 || $arimaDD=="")))(
+        #if($arimaD !=0 && $arimaD !="") #foreach( $item in [1..$arimaD]  ) 1 #end #end
+        #if($arimaDD !=0 && $arimaDD !="") #foreach( $item in [1..$arimaDD] ) $seasonality #end #end
+        )
+        #end
+#end
+
+proc arima data=#if($preProcessData > 0) Work.preProcessedData #else $dataset #end
+$arimaPlotStmt 
+#if($outputDSName) out=$outputDSName #end;
+
+identify var= #foreach($item in $dependVariable) $item$d #end
+    #if($modelTypeCombo=='ARIMAX' && $independVariable.size()>0)
+        crosscorr=(#foreach($item in $independVariable) $item$d #end)
+    #end
+    #if($outputCOVName) outcov=$outputCOVName #end
+;
+
+estimate
+    #if(!(($arimaP==0 || $arimaP=="") && ($arimaPP==0 || $arimaPP==""))) p=
+        #if($arimaP !=0 && $arimaP !="") (#foreach($item in [1..$arimaP]) $item #end) #end
+        #if($arimaPP !=0 && $arimaPP !="") (#foreach($item in [1..$arimaPP]) #set($ps=$item*$seasonality) $ps #end) #end
+    #end
+    #if(!(($arimaQ==0 || $arimaQ=="") && ($arimaQQ==0 || $arimaQQ==""))) q=
+        #if($arimaQ !=0 && $arimaQ !="") (#foreach($item in [1..$arimaQ]) $item #end) #end
+        #if($arimaQQ !=0 && $arimaQQ !="") (#foreach($item in [1..$arimaQQ]) #set($qs=$item*$seasonality) $qs #end) #end
+    #end
+    
+    #if($modelTypeCombo=='ARIMAX' && $independVariable.size()>0)
+        input=(#foreach($item in $independVariable) $item #end)
+    #end
+    #if($Intercept == '0') noint #end
+    method=ML
+    #if($outputESTName) outest=$outputESTName #end 
+    #if($outputSTATName) outstat=$outputSTATName #end
+    #if($outputMODELName) outmodel=$outputMODELName #end;
+
+forecast #if($forecastPeriods!="") lead=$forecastPeriods #end #if($forecastHoldback!="") back=$forecastHoldback #end alpha=$alpha
+    #if ($timeID.size() > 0)
+        id= #foreach($item in $timeID) $item #end interval=$timeIDProps.intervalName
+    #end
+    #if($modelTypeCombo=='ARIMAX') #if($plotArimaForecastFORECAST=='1' || $plotArimaForecastFORECASTONLY=='1') printall #end #end
+;
+#if($outlierDetection=="1") outlier; #end
+#if($byVariables.size() > 0)
+    by #foreach($item in $byVariables) $item #end;
+#end
+run;
+quit;
+
+##/****************************************************************************************/
+
+#elseif($modelTypeCombo=='UCM')
+##/****************************************************************************************/
+##/* Unobserved Components                                                                */
+
+proc ucm data=#if($preProcessData > 0) Work.preProcessedData #else $dataset #end
+
+#if($ucmSelectPlotsCombo=="ucmAllPlots") plots=all #elseif($ucmSelectPlotsCombo=="ucmNoPlots") plots=none #end;
+#if($timeID.size()>0)
+    id #foreach($item in $timeID) $item #end interval=$timeIDProps.intervalName;
+#end
+model #foreach($item in $dependVariable) $item #end #if($ucmIndependVariable.size()>0) = #foreach($item in $ucmIndependVariable) $item #end #end;
+#if($ucmIrregular=="1")
+    irregular #if($ucmIrregularVariance=="1") variance=$ucmIrregularInitialVariance #end #if($ucmIrregularNoest=="1") noest #end
+    #if($ucmSmoothIrregular=="1") plot=smooth #end;
+#end
+#if($ucmLevel=="1")
+    level #if($ucmLevelVariance=="1") variance=$ucmLevelInitialVariance #end #if($ucmLevelNoest=="1") noest #end #if($ucmLevelCheckBreaks=="1") checkbreak #end
+    #if($ucmSmoothLevel=="1" || $ucmFilterLevel=="1") plot=(#if($ucmSmoothLevel=="1") smooth #end #if($ucmFilterLevel=="1") filter #end) #end;
+#end
+#if($ucmSlope=="1")
+    slope #if($ucmSlopeVariance=="1") variance=$ucmSlopeInitialVariance #end #if($ucmSlopeNoest=="1") noest #end
+    #if($ucmSmoothSlope=="1" || $ucmFilterSlope=="1") plot=(#if($ucmSmoothSlope=="1") smooth #end #if($ucmFilterSlope=="1") filter #end) #end;
+#end
+#if($ucmSeasonal=="1")
+    season length=$seasonality type=$ucmSeasonalType #if($ucmSeasonalVariance=="1") variance=$ucmSeasonalInitialVariance #end #if($ucmSeasonalNoest=="1") noest #end
+    #if($ucmSmoothSeason=="1" || $ucmFilterSeason=="1") plot=(#if($ucmSmoothSeason=="1") smooth #end #if($ucmFilterSeason=="1") filter #end) #end;
+#end
+#if($ucmCycle=="1")
+    cycle #if($ucmCyclePeriod=="1") period=$ucmCycleInitialPeriod #end #if($ucmCycleDamping=="1") rho=$ucmCycleInitialDamping #end #if($ucmCycleVariance=="1") variance=$ucmCycleInitialVariance #end
+    #if($ucmCyclePeriodNoest=="1" || $ucmCycleDampingNoest=="1" || $ucmCycleVarianceNoest=="1") 
+        noest=(#if($ucmCyclePeriodNoest=="1") period #end #if($ucmCycleDampingNoest=="1") rho #end #if($ucmCycleVarianceNoest=="1") variance #end)
+    #end
+    #if($ucmSmoothCycle=="1" || $ucmFilterCycle=="1") plot=(#if($ucmSmoothCycle=="1") smooth #end #if($ucmFilterCycle=="1") filter #end) #end;
+#end
+#if($residualPlotSelected=="1" || $outputESTName) estimate
+    #if($residualPlotSelected=="1") plot=(
+        #if($ucmResidualPanel=="1") panel #end #if($ucmResidualAcfPlot=="1") acf #end #if($ucmResidualPacfPlot=="1") pacf #end #if($ucmResidualHistogram=="1") histogram #end
+        #if($ucmResidualQQ=="1") qq #end #if($ucmResidualNeedle=="1") residual #end #if($ucmResidualModel=="1") model #end #if($ucmResidualLoess=="1") loess #end
+        #if($ucmWnPlot=="1") wn #end #if($ucmResidualCusum=="1") cusum #end #if($ucmResidualCusumsq=="1") cusumsq #end
+    )
+    #end
+    #if($outputESTName) 
+        outest=$outputESTName
+    #end; 
+#end
+forecast #if($forecastPeriods!="") lead=$forecastPeriods #end #if($forecastHoldback!="") back=$forecastHoldback #end alpha=$alpha 
+#if($decompFcstPlotSelected=="1") plot=(
+    #if($ucmForecastPlot=="1") forecasts #end #if($ucmDecompPlot=="1") decomp #end #if($ucmDecompVarPlot=="1") decompvar #end #if($ucmFDecompPlot=="1") fdecomp #end #if($ucmFDecompVarPlot=="1") fdecompvar #end
+) #end
+#if($outputFORName) outfor=$outputFORName #end;
+outlier #if($outlierDetection=="0") maxpct=0 #end;
+#if($byVariables.size() > 0)
+    by #foreach($item in $byVariables) $item #end;
+#end
+run;
+
+##/****************************************************************************************/
+
+#elseif($modelTypeCombo=='MA')
+##/****************************************************************************************/
+##/* Moving avearge                                                                       */
+#set($init = 1.0/$maP)
+
+proc arima data=#if($preProcessData > 0) Work.preProcessedData #else $dataset #end
+
+$arimaPlotStmt 
+#if($outputDSName) out=$outputDSName #end;
+
+identify var= #foreach($item in $dependVariable) $item #end
+    #if($outputCOVName) outcov=$outputCOVName #end;
+
+estimate
+    #if($maP>0) q= (#foreach($item in [1..$maP]) $item  #end) 
+                ma=(#foreach($item in [1..$maP]) $init  #end)
+    #end
+    noint
+    method=CLS
+    #if($outputESTName) outest=$outputESTName #end 
+    #if($outputSTATName) outstat=$outputSTATName #end
+    #if($outputMODELName) outmodel=$outputMODELName #end;
+
+forecast #if($forecastPeriods!="") lead=$forecastPeriods #end #if($forecastHoldback!="") back=$forecastHoldback #end alpha=$alpha
+    #if($timeID.size() > 0)
+        id=#foreach($item in $timeID) $item #end interval=$timeIDProps.intervalName
+    #end
+;
+#if($outlierDetection=="1") outlier; #end
+#if($byVariables.size() > 0)
+    by #foreach($item in $byVariables) $item #end;
+#end
+run;
+quit;
+##/****************************************************************************************/
+
+#elseif($modelTypeCombo=='RW')
+##/****************************************************************************************/
+##/* Random Walk                                                                          */
+
+#define ($d) (1 #if($trend=="1") 1 #end #if($seasonal=="1") $seasonality #end )
+#end
+
+proc arima data=#if($preProcessData > 0) Work.preProcessedData #else $dataset #end
+$arimaPlotStmt 
+#if($outputDSName) out=$outputDSName #end;
+
+identify var=#foreach($item in $dependVariable) $item$d #end
+    #if($outputCOVName) outcov=$outputCOVName #end;
+
+estimate
+    #if($drift=="0") noint #end
+    method=CLS
+    #if($outputESTName) outest=$outputESTName #end 
+    #if($outputSTATName) outstat=$outputSTATName #end
+    #if($outputMODELName) outmodel=$outputMODELName #end;
+
+forecast #if($forecastPeriods!="") lead=$forecastPeriods #end #if($forecastHoldback!="") back=$forecastHoldback #end alpha=$alpha
+    #if($timeID.size() > 0)
+        id=#foreach($item in $timeID) $item #end interval=$timeIDProps.intervalName
+    #end
+;
+#if($outlierDetection=="1") outlier; #end
+#if($byVariables.size() > 0)
+    by #foreach($item in $byVariables) $item #end;
+#end
+run;
+quit;
+##/****************************************************************************************/
+#end
+
+#if( $preProcessData > 0 )
+proc delete data=Work.preProcessedData; run;
+#end
+
+]]></CodeTemplate>
+
+<TemplateValues version="3.8">
+<![CDATA[
+{"ucmCyclePeriodNoest":"0","forecastConfLevelCombo":"forecastConfLevelDefaultChoice","ucmDecompVarPlot":"0","plotESMModelTRENDS":"0","ucmTrig":"Trigonometric","sasOS":"X64_10HOME WIN","timeIDPropertyGroup":"Properties","forecastConfLevel":"95","ucmRegressionGroup":"Regression Effects","forecastConfLevelDefaultChoice":"95%","arimaQ":"0","arimaP":"1","ucmCycleVariance":"0","plotESMModelMODELS":"0","esmTransformCombo":"none","esmTransformBOXCOX":"Box-Cox transformation","drift":"0","modelTypeARIMA":"ARIMA","plotArimaSeriesACF":"0","ucmIndependVar":"0","arimaD":"1","outputSUM":"","plotArimaSeriesCORR":"1","plotArimaResidualQQ":"0","byVariables":"","ucmSelectPlotsCombo":"ucmDefaultPlots","plotESMModelSEASONS":"0","seasonalLen":"1","ucmCycleVarianceNoest":"0","forecastSettingsGroup":"FORECAST SETTINGS","modelTypeUCM":"Unobserved components","esmTransformLOG":"Logarithmic transformation","ucmFilterSeason":"0","ucmCycleInitialVariance":"0","ucmCycleInitialPeriod":"3","esmModelCombo":"simple","plotArimaSeriesPACF":"0","ucmCycle":"0","outlierDetection":"0","plotESMForecastFORECASTSONLY":"0","independVariable":"","outputSTATName":"work.outstat","ucmIrregularNoest":"0","arimaDefaultPlots":"Default plots","sasVersion":"9.46","ucmLevel":"1","outputESTName":"work.outest","outputGroup":"OUTPUT DATA SET","dataset":{"librarytable":"PROJECT1.AIRTRAFFIC_F1"},"modelTypeARIMAX":"ARIMAX","ucmResidualModel":"0","ucmResidualPanel":"1","ucmCycleCompGroup":"Cycle Component","addRolesGroup":"ADDITIONAL ROLES","ucmResidualCusum":"0","ucmResidualPacfPlot":"0","plotESMErrorERRORS":"1","ucmSmoothSlope":"0","rwGroup":"Model Settings","ucmIrregularCompGroup":"Irregular Component","forecastConfLevel90Choice":"90%","modelTypeRW":"Random walk","taskNote":"This task requires data in a valid time series format. To prepare your data, run the Time Series Data Preparation task before starting this task.","esmModelLINEAR":"Linear (Holt) exponential smoothing","plotArimaResidualIACF":"0","modelTypeESM":"Exponential smoothing","ucmIrregularVariance":"0","arimaGroup":"Model Settings","esmTransformLOGGISTIC":"Logistic transformation","ucmFilterSlope":"0","plotESMErrorSPECTRUM":"0","ucmDummy":"Dummy","timeIDProps":{"interval":"month","multiplier":1,"shift":1,"cycleLen":12,"intervalName":"month"},"plotArimaResidualSMOOTH":"0","arimaQQ":"1","modelTab":"MODEL","ucmDecompPlot":"0","ucmNoPlots":"No plots","outputSTAT":"1","forecastConfLevelCustomChoice":"Use custom value","esmForecastTypeMEAN":"Mean forecasts","plotESMModelLEVELS":"0","taskNoteGroup":"NOTE","esmModelMULTSEASONAL":"Multiplicative seasonal exponential smoothing","ucmDecompFcstGroup":"Series Decomposition and Forecast Plots","outputFORName":"work.outfor","ucmResidualCusumsq":"0","arimaDD":"1","plotESMForecastFORECASTS":"0","ucmSeasonalCompGroup":"Seasonal Component","ucmSmoothLevel":"0","ucmWnPlot":"0","arimaResidualPlotsGroup":"Residual Plots","plotArimaResidualHIST":"0","maGroup":"Model Settings","outputMODELName":"work.outmodel","plotArimaSeriesCROSSCORR":"1","arimaSettingsGroup":"ARIMA","plotArimaSeriesIACF":"0","modelGroup":"MODEL","ucmSelectedPlots":"Selected plots","ucmSeasonalNote":"Note: Seasonal component can be added when season length is greater than one.","ucmResidualQQ":"0","outputCOVName":"work.outcov","dependVariable":"json:[{\"value\":\"RPM\",\"type\":\"Numeric\",\"length\":8,\"format\":\"BEST12.\",\"informat\":\"BEST32.\",\"className\":\"RoleObject\"}]","modelTypeCombo":"ARIMA","ucmCycleInitialDamping":"0.01","ucmSlope":"0","ucmPlotsGroup":"Plots","ucmResidualHistogram":"0","esmModelSIMPLE":"Simple (single) exponential smoothing","arimaNoPlots":"No plots","trend":"0","ucmIrregular":"1","esmModelDAMPTREND":"Damped trend exponential smoothing","ucmFDecompVarPlot":"0","ucmCycleDamping":"0","outputSUMName":"work.outsum","ucmAllPlots":"All plots","plotArimaResidualNORMAL":"1","ucmFDecompPlot":"0","ucmSlopeInitialVariance":"0","esmGroup":"Model Settings","ucmResidualNeedle":"0","ucmSeasonalVariance":"0","ucmLevelVariance":"0","ucmIrregularInitialVariance":"0","ucmFilterCompPlotsGroup":"Filtered Component Estimates","ucmLevelNoest":"0","ucmGroup":"Model Settings","esmModelADDWINTERS":"Winters additive method","ucmSmoothSeason":"0","esmNoPlots":"No plots","ucmFilterLevel":"0","ucmDefaultPlots":"Default plots","outputDSName":"work.out","maP":"1","esmDefaultPlots":"Default plots","ucmIndependVariable":"","ucmSmoothIrregular":"0","timeID":"json:[{\"value\":\"Date\",\"type\":\"Numeric\",\"length\":8,\"format\":\"MMDDYY10.\",\"informat\":\"MMDDYY10.\",\"className\":\"RoleObject\"}]","seasonal":"0","plotESMErrorPERIODGRAM":"0","plotArimaForecastFORECASTONLY":"1","arimaOutputNote":"The output data set includes forecast and actual values and confidence limits.","plotArimaResidualCORR":"1","ucmResidualPlotsGroup":"Residuals Plots","rolesGroup":"ROLES","arimaPP":"0","plotESMErrorIACF":"0","esmForecastTypeMEDIAN":"Median forecasts","ucmTrendCompGroup":"Trend Component","outputCOV":"1","outputMODEL":"","arimaSeriesPlotsGroup":"Series Plots","outputEST":"1","arimaAllPlots":"All plots","plotESMForecastMODELFORECASTS":"1","esmModelADDSEASONAL":"Additive seasonal exponential smoothing","plotESMErrorCORR":"1","esmModelPlotsGroup":"Model Plots","forecastHoldback":"0","ucmLevelCheckBreaks":"0","outputTab":"OUTPUT","ucmLevelInitialVariance":"0","ucmCycleDampingNoest":"0","outputDS":"1","esmModelWINTERS":"Winters multiplicative model","forecastPeriods":"12","esmForecastPlotsGroup":"Forecast Plots","arimaSelectedPlots":"Selected plots","ucmSeasonalNoest":"0","ucmSeasonalType":"dummy","dataTab":"DATA","ucmSeasonalInitialVariance":"0","ucmResidualLoess":"1","ucmResidualAcfPlot":"0","esmTransformSQRT":"Square-root transformation","arimaSelectPlotsCombo":"arimaSelectedPlots","plotESMErrorWN":"0","ucmSmoothCycle":"0","plotESMErrorACF":"0","outputFOR":"","ucmFilterCycle":"0","outlierGroup":"OUTLIER DETECTION","esmErrorPlotsGroup":"Error Plots","esmOutputNote":"The output data set includes forecast and actual values.","ucmSmoothCompPlotsGroup":"Smoothed Component Estimates","esmTransformNONE":"No transformation","esmForecastTypeCombo":"mean","esmSelectedPlots":"Selected plots","arimaxGroup":"Independent Variables","esmAllPlots":"All plots","plotESMErrorPACF":"0","Intercept":"1","forecastConfLevel99Choice":"99%","seasonalArimaSettingsGroup":"Seasonal ARIMA","esmSelectPlotsCombo":"esmDefaultPlots","modelTypeMA":"Moving average","arimaForecastPlotsGroup":"Forecast Plots","esmPlotsGroup":"Plots","plotArimaForecastFORECAST":"1","plotArimaResidualPACF":"0","ucmSlopeVariance":"0","boxCoxParam":"0","plotArimaResidualACF":"0","ucmSlopeNoest":"0","esmModelDOUBLE":"Double (Brown) exponential smoothing","ucmForecastPlot":"1","arimaPlotsGroup":"Plots","plotArimaResidualWN":"1","dataGroup":"DATA","ucmSeasonal":"0","ucmCyclePeriod":"0","optionsTab":"OPTIONS"}
+]]>
+</TemplateValues>
+</Task>
